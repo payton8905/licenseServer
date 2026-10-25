@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#577080"/></marker></defs><rect width="1100" height="620" rx="16" fill="#f2f6fb"/><style>text{font-family:"Noto Sans CJK TC","Microsoft JhengHei",sans-serif;fill:#17334a}.title{font-size:24px;font-weight:700}.body{font-size:19px}.small{font-size:17px;fill:#526677}.line{stroke:#577080;stroke-width:2.5;fill:none;marker-end:url(#arrow)}</style>
+<text x="40" y="48" class="title">完全離線授權　客戶設備全程不連 Keygen</text>
+<text x="140" y="95" class="body">客戶產品管理員</text><text x="745" y="95" class="body">供應商授權管理員</text>
+<path d="M550 110 L550 595" stroke="#becbda" stroke-dasharray="6 7"/>
+<rect x="50" y="125" width="400" height="90" rx="12" fill="white" stroke="#4885cb"/>
+<text x="75" y="160" class="body">1　開啟「設定 → 產品授權」</text><text x="75" y="193" class="small">複製此部署的完整設備識別碼</text>
+<path d="M450 170 L650 170" class="line"/><text x="490" y="151" class="small">交付識別碼</text>
+<rect x="650" y="125" width="400" height="90" rx="12" fill="white" stroke="#459579"/>
+<text x="675" y="160" class="body">2　建立或沿用客戶 License</text><text x="675" y="193" class="small">設定期限、部署數量、人數與模組</text>
+<path d="M850 215 L850 265" class="line"/>
+<rect x="650" y="275" width="400" height="90" rx="12" fill="white" stroke="#459579"/>
+<text x="675" y="310" class="body">3　以識別碼登記 Machine</text><text x="675" y="343" class="small">Checkout 取得簽章 .lic 檔案</text>
+<path d="M650 320 L450 320" class="line"/><text x="485" y="301" class="small">交付 .lic</text>
+<rect x="50" y="275" width="400" height="90" rx="12" fill="white" stroke="#4885cb"/>
+<text x="75" y="310" class="body">4　匯入簽章授權檔案</text><text x="75" y="343" class="small">產品本機驗證簽章、設備與期限</text>
+<path d="M250 365 L250 415" class="line"/>
+<rect x="50" y="425" width="400" height="90" rx="12" fill="#e7f5ee" stroke="#459579"/>
+<text x="75" y="460" class="body">5　確認「授權有效」</text><text x="75" y="493" class="small">核對方案、10 人上限與兩個到期日</text>
+<text x="650" y="450" class="body">續約：修改原 License 的期限</text><text x="650" y="485" class="small">從原 Machine 重新 Checkout 並交付</text>
+<text x="50" y="572" class="body">第二套部署需要第二個識別碼與專屬 .lic；沿用同一張 License 的部署額度。</text>
+</svg>

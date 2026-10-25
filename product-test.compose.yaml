@@ -1,0 +1,164 @@
+# Local licensing test stack. Use -p sbomscan-license-test and product-public.env.
+# All writable product data is isolated in project-scoped named volumes.
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sbomscan-local-development-only}
+      POSTGRES_DB: scan_db
+    volumes:
+    - postgres_data:/var/lib/postgresql/data
+    networks:
+    - scan-network
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U user -d scan_db
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+  backend-go-permissions:
+    image: alpine:3.22
+    restart: 'no'
+    user: 0:0
+    volumes:
+    - test_uploads:/mnt/uploads
+    - test_logs:/mnt/logs
+    - test_certificates:/mnt/certificates
+    - test_backups:/mnt/backups
+    - test_analyzer_builds:/mnt/analyzer_builds
+    - trivy_db_cache:/mnt/trivy_db_cache
+    - grype_db_cache:/mnt/grype_db_cache
+    - go_mod_cache:/mnt/go_mod_cache
+    - go_build_cache:/mnt/go_build_cache
+    - product_license:/mnt/product_license
+    command:
+    - sh
+    - -c
+    - chown -R 10001:10001 /mnt/uploads /mnt/logs /mnt/certificates /mnt/backups /mnt/analyzer_builds
+      /mnt/trivy_db_cache /mnt/grype_db_cache /mnt/go_mod_cache /mnt/go_build_cache
+      /mnt/product_license && chmod -R u+rwX /mnt/uploads /mnt/logs /mnt/certificates
+      /mnt/backups /mnt/analyzer_builds /mnt/trivy_db_cache /mnt/grype_db_cache /mnt/go_mod_cache
+      /mnt/go_build_cache /mnt/product_license
+  backend-go:
+    restart: always
+    volumes:
+    - test_uploads:/app/uploads
+    - test_logs:/app/logs
+    - test_certificates:/app/certificates
+    - test_backups:/app/backups
+    - test_analyzer_builds:/app/analyzer_builds
+    - ${SBOMSCAN_SOURCE_DIR:?Set SBOMSCAN_SOURCE_DIR}/analyzer:/app/analyzer:ro
+    - ${SBOMSCAN_SOURCE_DIR:?Set SBOMSCAN_SOURCE_DIR}/analyzer:/analyzer:ro
+    - ${SBOMSCAN_SOURCE_DIR:?Set SBOMSCAN_SOURCE_DIR}/backend/app/assets:/app/backend-assets:ro
+    - trivy_db_cache:/app/.cache/trivy
+    - grype_db_cache:/app/.cache/grype
+    - go_mod_cache:/app/.cache/go-mod
+    - go_build_cache:/app/.cache/go-build
+    - product_license:/app/license
+    - /etc/machine-id:/host/etc/machine-id:ro
+    - ./.runtime/root.crt:/app/license-test-ca.crt:ro
+    environment:
+      TZ: ${TZ:-Asia/Taipei}
+      SCHEDULER_TIMEZONE: ${SCHEDULER_TIMEZONE:-Asia/Taipei}
+      TOKEN_TTL_HOURS: ${TOKEN_TTL_HOURS:-12}
+      RESOLUTION_LAYER_ENABLED: ${RESOLUTION_LAYER_ENABLED:-true}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      DATABASE_URL: postgresql://user:${POSTGRES_PASSWORD:-sbomscan-local-development-only}@db:5432/scan_db
+      UPLOAD_DIR: /app/uploads
+      ANALYZER_BUILD_DIR: /app/analyzer_builds
+      ANALYZER_SOURCE_DIR: /app/analyzer
+      CERT_DIR: /app/certificates
+      BACKUP_DIR: /app/backups
+      VULNERABILITY_PACKAGER_PATH: /app/backend-assets/prepare-tracewolf-vulnerability-db.ps1
+      TRIVY_CACHE_DIR: /app/.cache/trivy
+      GRYPE_DB_CACHE_DIR: /app/.cache/grype
+      GRYPE_DB_AUTO_UPDATE: 'false'
+      GRYPE_DB_VALIDATE_AGE: 'false'
+      GOMODCACHE: /app/.cache/go-mod
+      GOCACHE: /app/.cache/go-build
+      SUPPORT_USERNAME: ${SUPPORT_USERNAME:-}
+      SUPPORT_PASSWORD: ${SUPPORT_PASSWORD:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FILE_PATH: ${LOG_FILE_PATH:-/app/logs/go-app.log}
+      LOG_MAX_BYTES: ${LOG_MAX_BYTES:-10485760}
+      LOG_BACKUP_COUNT: ${LOG_BACKUP_COUNT:-14}
+      LICENSE_MODE: ${LICENSE_MODE:-offline}
+      LICENSE_ACCOUNT_ID: ${LICENSE_ACCOUNT_ID:-}
+      LICENSE_PRODUCT_ID: ${LICENSE_PRODUCT_ID:-}
+      LICENSE_PUBLIC_KEY: ${LICENSE_PUBLIC_KEY:-}
+      LICENSE_API_URL: https://keygen.localhost:8443
+      LICENSE_STATE_DIR: /app/license
+      LICENSE_MACHINE_ID_PATH: /host/etc/machine-id
+      ARCHIVE_MAX_FILES: ${ARCHIVE_MAX_FILES:-100000}
+      ARCHIVE_MAX_TOTAL_SIZE_BYTES: ${ARCHIVE_MAX_TOTAL_SIZE_BYTES:-2147483648}
+      LICENSE_CA_FILE: /app/license-test-ca.crt
+    depends_on:
+      db:
+        condition: service_healthy
+      backend-go-permissions:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - -qO-
+      - http://localhost:8000/health
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+    - scan-network
+    - keygen-test
+    image: sbomscan-backend-go:latest
+  frontend:
+    restart: always
+    environment:
+      BACKEND_ORIGIN: http://backend-go:8000
+      BACKEND_API_PREFIX: /api
+    depends_on:
+    - backend-go
+    networks:
+    - scan-network
+    image: sbomscan-frontend:latest
+  gateway:
+    image: nginx:alpine
+    environment:
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
+      EXTERNAL_HTTPS_PORT: ${LICENSE_TEST_PORT:-9443}
+    restart: always
+    ports:
+    - 127.0.0.1:${LICENSE_TEST_PORT:-9443}:443
+    volumes:
+    - ${SBOMSCAN_SOURCE_DIR:?Set SBOMSCAN_SOURCE_DIR}/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    - test_certificates:/etc/nginx/certs:ro
+    - ${SBOMSCAN_SOURCE_DIR:?Set SBOMSCAN_SOURCE_DIR}/nginx/cert-reload.sh:/docker-entrypoint.d/40-cert-reload.sh:ro
+    depends_on:
+      backend-go:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+    networks:
+    - scan-network
+networks:
+  scan-network:
+    driver: bridge
+  keygen-test:
+    external: true
+    name: sbomscan-keygen-poc_default
+volumes:
+  postgres_data: null
+  trivy_db_cache: null
+  grype_db_cache: null
+  go_mod_cache: null
+  go_build_cache: null
+  product_license: null
+  test_uploads: null
+  test_logs: null
+  test_certificates: null
+  test_backups: null
+  test_analyzer_builds: null

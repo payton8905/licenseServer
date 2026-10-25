@@ -1,0 +1,22 @@
+# Local-only bridge from the delivered product stack to the vendor PoC.
+# Use together with the root docker-compose.yml; never ship this override.
+services:
+  backend-go:
+    build:
+      network: host
+    environment:
+      LICENSE_API_URL: https://keygen.localhost:8443
+      LICENSE_CA_FILE: /app/license-test-ca.crt
+    volumes:
+      - ${LICENSE_SERVER_DIR:?Set LICENSE_SERVER_DIR}/.runtime/root.crt:/app/license-test-ca.crt:ro
+    networks:
+      - keygen-test
+
+  frontend:
+    build:
+      network: host
+
+networks:
+  keygen-test:
+    external: true
+    name: sbomscan-keygen-poc_default

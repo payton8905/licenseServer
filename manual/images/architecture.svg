@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="470" viewBox="0 0 1100 470" role="img"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#577080"/></marker></defs><rect width="1100" height="470" rx="16" fill="#f2f6fb"/><style>text{font-family:"Noto Sans CJK TC","Microsoft JhengHei",sans-serif;fill:#17334a}.title{font-size:24px;font-weight:700}.body{font-size:19px}.small{font-size:17px;fill:#526677}.line{stroke:#577080;stroke-width:2.5;fill:none;marker-end:url(#arrow)}</style>
+<text x="40" y="48" class="title">一個管理中心　管理多套客戶產品</text>
+<rect x="40" y="85" width="340" height="300" rx="14" fill="white" stroke="#459579" stroke-width="2"/>
+<text x="65" y="125" class="title">供應商管理端</text>
+<text x="65" y="162" class="body">Keygen CE ＋ Portal</text>
+<text x="65" y="200" class="small">客戶 ／ 方案 ／ License ／ 設備</text>
+<text x="65" y="242" class="body">本機 https://localhost:8443</text>
+<text x="65" y="285" class="small">保管管理員密碼與簽章私鑰</text>
+<text x="65" y="322" class="small">設定 ./.env</text>
+<path d="M380 170 L680 170" class="line"/>
+<text x="410" y="148" class="small">線上：License Key ＋ HTTPS</text>
+<path d="M380 300 L680 300" class="line"/>
+<text x="412" y="277" class="small">離線：交付綁設備的 .lic 檔</text>
+<rect x="700" y="85" width="360" height="135" rx="14" fill="white" stroke="#4885cb" stroke-width="2"/>
+<text x="725" y="125" class="title">客戶產品部署 A</text>
+<text x="725" y="164" class="body">SBOMScan ／ TraceWOLF</text>
+<text x="725" y="199" class="small">自己的資料庫 ＋ 每套 10 人</text>
+<rect x="700" y="250" width="360" height="135" rx="14" fill="white" stroke="#4885cb" stroke-width="2"/>
+<text x="725" y="290" class="title">客戶產品部署 B</text>
+<text x="725" y="329" class="body">另一個設備識別碼</text>
+<text x="725" y="364" class="small">自己的資料庫 ＋ 每套 10 人</text>
+<text x="40" y="433" class="body">客戶產品只持有公開信任設定與自己的授權，不持有供應商簽章私鑰。</text>
+</svg>

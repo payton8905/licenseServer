@@ -1,0 +1,26 @@
+{
+	auto_https disable_redirects
+}
+
+https://localhost:8443, https://keygen.localhost:8443 {
+	tls internal
+	# Serve only the current public CA certificate, never its private key.
+	handle /local-ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition "attachment; filename=keygen-local-ca.crt"
+		header Cache-Control "no-store"
+		file_server
+	}
+	@api path /v1 /v1/*
+	handle @api {
+		reverse_proxy web:3000 {
+			header_up Host api.keygen.localhost
+			header_up X-Forwarded-Host api.keygen.localhost
+		}
+	}
+	handle {
+		reverse_proxy portal:80
+	}
+}

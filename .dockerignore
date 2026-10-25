@@ -1,0 +1,5 @@
+*
+!portal.nginx.conf
+!portal-customize.mjs
+!portal-i18n/
+!portal-i18n/**

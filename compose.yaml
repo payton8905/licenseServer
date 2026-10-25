@@ -1,0 +1,90 @@
+name: sbomscan-keygen-poc
+
+x-keygen: &keygen
+  image: keygen/api:v1.7.2
+  env_file: .env
+  environment:
+    DATABASE_URL: postgres://keygen:${POSTGRES_PASSWORD}@postgres:5432/keygen
+    REDIS_URL: redis://redis:6379/0
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    environment:
+      POSTGRES_USER: keygen
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: keygen
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U keygen -d keygen]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  setup:
+    <<: *keygen
+    profiles: [setup]
+    command: setup
+
+  web:
+    <<: *keygen
+    command: web
+    healthcheck:
+      test: [CMD, wget, -qO-, 'http://127.0.0.1:3000/v1/health']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  worker:
+    <<: *keygen
+    command: worker
+
+  portal:
+    build:
+      context: .
+      dockerfile: portal.Dockerfile
+      args:
+        KEYGEN_ACCOUNT_ID: ${KEYGEN_ACCOUNT_ID}
+        KEYGEN_ADMIN_EMAIL: ${KEYGEN_ADMIN_EMAIL:-admin@example.com}
+    image: sbomscan-keygen-portal:poc
+
+  gateway:
+    image: caddy:2.10.2-alpine
+    networks:
+      default:
+        aliases: [keygen.localhost]
+    ports:
+      - '127.0.0.1:8443:8443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+      portal:
+        condition: service_started
+
+volumes:
+  postgres:
+  redis:
+  caddy_data:
+  caddy_config:
