@@ -13,6 +13,23 @@ x-keygen: &keygen
       condition: service_healthy
 
 services:
+  runtime-permissions:
+    image: alpine:3.22
+    user: "0:0"
+    restart: "no"
+    volumes:
+      - ./.runtime:/runtime
+    command:
+      - sh
+      - -ec
+      - |
+        chown 1000:1000 /runtime
+        chmod 750 /runtime
+        if [ -f /runtime/bootstrap.log ]; then
+          chown 1000:1000 /runtime/bootstrap.log
+          chmod 600 /runtime/bootstrap.log
+        fi
+
   postgres:
     image: postgres:17.5-alpine
     environment:
@@ -45,6 +62,13 @@ services:
     volumes:
       - ./bootstrap-database.rb:/bootstrap/database.rb:ro
       - ./.runtime:/runtime
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      runtime-permissions:
+        condition: service_completed_successfully
 
   web:
     <<: *keygen

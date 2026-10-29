@@ -33,6 +33,8 @@ docker compose ps -a
 
 `setup` 與 `catalog` 顯示 `Exited (0)` 代表一次性工作成功，其他服務應持續運行。若資料庫內已有其他 Account ID 或不完整資料表，初始化會停止並保留資料，不會自動重置；查看 `.runtime/bootstrap.log` 與服務日誌排查。
 
+`runtime-permissions` 會先讓 Keygen 的 UID 1000 可以寫入 `.runtime`，因此全新下載時不必手動建立目錄或調整權限。若重新下載造成產品對照檔遺失，啟動流程會恢復唯一的既有 SBOMScan 產品及原始評估方案對照，保留既有功能編輯；遇到多個同名產品或無法辨識的自訂方案時會停止，不會猜測或建立替代資料。
+
 啟動完成後開啟 **https://localhost:8443**。新環境預設登入帳號 **`admin`**、密碼 **`admin123`**；登入頁會將 `admin` 對應至 `.env` 的 `KEYGEN_ADMIN_EMAIL`（預設 `admin@example.com`），也可直接輸入該 Email。密碼保存在 `.env` 的 `KEYGEN_ADMIN_PASSWORD`。本機 CA 位於 `.runtime/root.crt`，瀏覽器需信任此憑證。
 
 這組預設值用於首次初始化，密碼不寫入 Docker 映像。既有資料庫不會因重新 build 或修改 `.env` 而重設管理員密碼；已有帳號請從管理介面修改，並同步更新 `.env`。重建 Portal 會套用 `.env` 中管理員 Email 的簡寫對應。

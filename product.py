@@ -11,6 +11,7 @@ from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import smoke
 from poc import ROOT, RUNTIME, LocalConnectionError
@@ -35,6 +36,56 @@ def admin():
         smoke.TOKEN = None
 
 
+def list_resources(path):
+    """Read all pages without allowing pagination links to leave this account."""
+    resources, seen = [], set()
+    while path:
+        if path in seen:
+            raise RuntimeError('Repeated API pagination link')
+        seen.add(path)
+        response = smoke.request('GET', path)
+        resources.extend(response['data'])
+        link = (response.get('links') or {}).get('next')
+        if not link:
+            break
+        parsed, base = urlsplit(link), urlsplit(smoke.BASE)
+        prefix = base.path.rstrip('/') + '/'
+        if (parsed.scheme, parsed.netloc) != (base.scheme, base.netloc) or not parsed.path.startswith(prefix):
+            raise RuntimeError('Pagination link belongs to another server or account')
+        path = parsed.path[len(base.path.rstrip('/')):] + ('?' + parsed.query if parsed.query else '')
+    return resources
+
+
+def recover_catalog():
+    """A fresh checkout must reuse existing API objects when local state is lost."""
+    matches = [p for p in list_resources('/products') if p['attributes'].get('name') == 'SBOMScan']
+    if len(matches) > 1:
+        raise ValueError('Multiple SBOMScan products exist; restore the intended product-catalog.json before continuing')
+    if not matches:
+        return None
+    product_id = matches[0]['id']
+    policies = list_resources('/products/' + product_id + '/policies')
+    mapping = {}
+    unknown = []
+    for policy in policies:
+        tier = next((tier for tier in PLANS if policy['attributes'].get('name') == 'SBOMScan '+tier+' (evaluation)'), None)
+        if tier is None:
+            unknown.append(policy['id'])
+        elif tier in mapping:
+            raise ValueError('Duplicate SBOMScan evaluation policies; restore product-catalog.json before continuing')
+        else:
+            mapping[tier] = policy['id']
+    if unknown and len(mapping) != len(PLANS):
+        raise ValueError('Custom policy names prevent automatic catalog recovery; restore product-catalog.json before continuing')
+    entitlements = {e['attributes']['code']: e['id'] for e in list_resources('/entitlements') if e['attributes'].get('code') in FEATURES}
+    catalog = {'account_id': smoke.ENV['KEYGEN_ACCOUNT_ID'], 'product_id': product_id,
+               'policies': mapping, 'entitlements': entitlements,
+               'pending_policy_entitlements': [], 'deployment_model_version': 3}
+    smoke.private_json(CATALOG, catalog)
+    print('Recovered the existing SBOMScan product catalog; existing products and policy edits were preserved.')
+    return catalog
+
+
 def initialize():
     catalog = None
     if CATALOG.exists():
@@ -51,6 +102,9 @@ def initialize():
         smoke.private_json(backup, catalog)
         print('舊產品已不存在於 Keygen；保留原目錄：', backup)
         print('重新建立 SBOMScan 產品與評估方案；既有客戶設定需改用新的 Product ID。')
+    recovered = recover_catalog()
+    if recovered is not None:
+        return recovered
     product = smoke.create('products', {'name': 'SBOMScan', 'metadata': {'commercial_plans_finalized': False}})
     catalog = {'product_id': product['id'], 'account_id': smoke.ENV['KEYGEN_ACCOUNT_ID'], 'policies': {},
                'entitlements': dict(catalog.get('entitlements', {})) if catalog else {}}
