@@ -1,5 +1,6 @@
 *
 !portal.nginx.conf
 !portal-customize.mjs
+!portal-advanced.mjs
 !portal-i18n/
 !portal-i18n/**

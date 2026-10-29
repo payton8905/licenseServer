@@ -2143,5 +2143,14 @@
   "Set a positive integer or select unlimited. A license without its own quota uses the policy default when issued. Changing a policy does not change previously issued license quotas.": "請填正整數或勾選不限。配發時未指定額度會複製方案預設值；日後修改方案不會改動已配發授權的專案額度。",
   "Project quota contains conflicting values.": "專案額度設定互相衝突。",
   "Project quota is required. Enter a positive integer or select unlimited.": "請設定專案額度：填正整數或勾選不限。",
-  "Invalid project quota": "專案額度無效"
+  "Invalid project quota": "專案額度無效",
+  "Advanced features": "進階功能",
+  "Enable advanced features": "啟用進階功能",
+  "Disable advanced features": "關閉進階功能",
+  "Show component management and component checkout options. This preference is saved in this browser.": "顯示元件管理與簽出元件選項。此設定儲存在目前瀏覽器。",
+  "Unable to save this preference. Allow browser storage and try again.": "無法儲存設定，請允許瀏覽器儲存資料後再試一次。",
+  "Enable advanced features in Settings to view component management.": "請至設定啟用進階功能，即可查看元件管理。",
+  "Open settings": "開啟設定",
+  "Show component management and Webhooks. This preference is saved in this browser.": "顯示元件管理與 Webhook 功能。此設定儲存在目前瀏覽器。",
+  "Enable advanced features in Settings to view this page.": "請至設定啟用進階功能，即可查看此頁面。"
 }

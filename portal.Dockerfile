@@ -16,9 +16,11 @@ ENV VITE_KEYGEN_ACCOUNT_ID=$KEYGEN_ACCOUNT_ID \
     VITE_KEYGEN_MODE=singleplayer \
     VITE_KEYGEN_AUTHENTICATION_SCHEME=token
 COPY portal-customize.mjs /tmp/portal-customize.mjs
+COPY portal-advanced.mjs /tmp/portal-advanced.mjs
 COPY portal-i18n/ /app/license-localization/
 RUN node /app/license-localization/test.mjs \
-    && node /tmp/portal-customize.mjs && node /app/license-localization/install.mjs && pnpm build
+    && node /tmp/portal-customize.mjs && node /tmp/portal-advanced.mjs \
+    && node /app/license-localization/install.mjs && pnpm build
 
 FROM nginx:1.28-alpine
 COPY portal.nginx.conf /etc/nginx/conf.d/default.conf
