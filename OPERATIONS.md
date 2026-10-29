@@ -1,6 +1,6 @@
 # Keygen CE + 官方 Portal 本機 PoC
 
-Windows Docker Desktop 可直接執行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\docker-start.ps1`，不需額外安裝 WSL 發行版、Python 或 Git。完整步驟見 [README 的 Windows Docker 一鍵啟動](README.md#windows-docker-一鍵啟動)。下列 `python3` 指令仍以 Linux 環境為準。
+Windows Docker Desktop 可直接執行 `docker compose up -d`，首次建立資料庫、管理員與產品目錄會自動完成，不需額外安裝 WSL 發行版、Python 或 Git。`docker-start.ps1` 仍可作為相同流程的便利入口。完整步驟見 [README 的 Docker 一鍵啟動](README.md#docker-一鍵啟動)。下列 `python3` 指令仍以 Linux 環境為準。
 
 此目錄已拆為獨立 LicenseServer 專案。請先閱讀 [README.md](README.md)；下列產品整合指令需要預先設定 `SBOMSCAN_SOURCE_DIR`、`LICENSE_SERVER_DIR` 為絕對路徑。本文「產品根目錄」指 SBOMScan checkout，「本目錄」指 LicenseServer。
 

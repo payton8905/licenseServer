@@ -40,12 +40,18 @@ services:
 
   setup:
     <<: *keygen
-    profiles: [setup]
-    command: setup
+    restart: "no"
+    entrypoint: [bundle, exec, ruby, /bootstrap/database.rb]
+    volumes:
+      - ./bootstrap-database.rb:/bootstrap/database.rb:ro
+      - ./.runtime:/runtime
 
   web:
     <<: *keygen
     command: web
+    depends_on:
+      setup:
+        condition: service_completed_successfully
     healthcheck:
       test: [CMD, wget, -qO-, 'http://127.0.0.1:3000/v1/health']
       interval: 5s
@@ -56,8 +62,12 @@ services:
   worker:
     <<: *keygen
     command: worker
+    depends_on:
+      setup:
+        condition: service_completed_successfully
 
   portal:
+    pull_policy: build
     build:
       context: .
       dockerfile: portal.Dockerfile
@@ -82,6 +92,29 @@ services:
         condition: service_healthy
       portal:
         condition: service_started
+
+  catalog:
+    image: python:3.12-alpine
+    restart: "no"
+    network_mode: service:gateway
+    working_dir: /workspace
+    command: [python, -u, bootstrap-catalog.py]
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      LICENSE_PUBLIC_URL: ${LICENSE_PUBLIC_URL:-https://localhost:8443}
+    volumes:
+      - ./bootstrap-catalog.py:/workspace/bootstrap-catalog.py:ro
+      - ./poc.py:/workspace/poc.py:ro
+      - ./smoke.py:/workspace/smoke.py:ro
+      - ./product.py:/workspace/product.py:ro
+      - ./.env:/workspace/.env:ro
+      - ./.runtime:/workspace/.runtime
+      - caddy_data:/caddy-data:ro
+    depends_on:
+      gateway:
+        condition: service_started
+      web:
+        condition: service_healthy
 
 volumes:
   postgres:

@@ -98,29 +98,8 @@ def prepare():
 
 def up():
     prepare()
-    compose('config', '--quiet')
-    compose('up', '-d', '--wait', 'postgres', 'redis')
-    # Inspect the actual database, rather than trusting a marker on disk.
-    exists = compose('exec', '-T', 'postgres', 'psql', '-U', 'keygen', '-d', 'keygen',
-                     '-tAc', "SELECT to_regclass('public.accounts') IS NOT NULL", capture_output=True, text=True)
-    if exists.stdout.strip() == 'f':
-        # Upstream setup prints secrets. Keep its output in a private local file.
-        log = RUNTIME / 'setup.log'
-        fd = os.open(log, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(fd, 'w') as out:
-            try:
-                compose('--profile', 'setup', 'run', '--rm', '-T', 'setup', stdout=out, stderr=subprocess.STDOUT)
-            except subprocess.CalledProcessError:
-                raise RuntimeError(f'Setup failed; inspect {log} locally (contains secrets)')
-    else:
-        count = compose('exec', '-T', 'postgres', 'psql', '-U', 'keygen', '-d', 'keygen',
-                        '-tAc', 'SELECT count(*) FROM accounts', capture_output=True, text=True)
-        if int(count.stdout.strip()) == 0:
-            raise RuntimeError('Schema exists without an account; inspect .runtime/setup.log before recovery')
-    compose('build', 'portal')
-    compose('up', '-d', '--wait', '--wait-timeout', '180', 'web', 'worker', 'portal', 'gateway')
-    cert = compose('exec', '-T', 'gateway', 'cat', '/data/caddy/pki/authorities/local/root.crt', capture_output=True)
-    (RUNTIME / 'root.crt').write_bytes(cert.stdout)
+    compose('up', '-d')
+    compose('wait', 'catalog')
     print('Portal: https://localhost:8443\nCredentials: ./.env\nLocal CA: ./.runtime/root.crt')
 
 
@@ -137,7 +116,8 @@ def restart():
     # network changes. Recreate only this stack; never remove its data volumes
     # or rerun the schema-loading setup task against an existing database.
     compose('down')
-    compose('up', '-d', '--wait', '--wait-timeout', '180')
+    compose('up', '-d')
+    compose('wait', 'catalog')
     cert = compose('exec', '-T', 'gateway', 'cat', '/data/caddy/pki/authorities/local/root.crt', capture_output=True)
     (RUNTIME / 'root.crt').write_bytes(cert.stdout)
     check()

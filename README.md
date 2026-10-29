@@ -10,19 +10,28 @@ LicenseServer（供應商，集中部署一次）
   └─ 客戶 C / SBOMScan（獨立資料庫、授權檔與部署識別）
 ```
 
-## Windows Docker 一鍵啟動
+## Docker 一鍵啟動
 
-儲存庫已包含可直接讀取的 `.env` 本機部署設定，包括 Account ID、管理員登入設定、資料庫密碼及應用程式加密設定。重新 clone 後不需自行建立 `.env`；啟動腳本會保留現有內容，只有檔案不存在時才產生新設定。這份設定供本機集中授權服務使用，不隨 SBOMScan 客戶產品交付。
+儲存庫已包含可直接讀取的 `.env` 本機部署設定，包括 Account ID、管理員登入設定、資料庫密碼及應用程式加密設定。重新 clone 後不需自行建立 `.env`；Compose 直接讀取現有內容。這份設定供本機集中授權服務使用，不隨 SBOMScan 客戶產品交付。
 
-首次啟動仍須執行下方腳本，以初始化 Keygen 資料庫與管理員帳號、建置符合 Account ID 的 Portal 並建立產品目錄。完成後可使用 `docker compose up -d` 啟動既有環境。
+首次啟動與之後重啟使用同一個指令，不需額外初始化步驟。Compose 會自動檢查資料庫：空白環境建立管理員與資料表，既有環境則保留帳號、密碼、客戶及授權資料，再完成必要的資料庫更新。
 
 先啟動 Docker Desktop（Linux containers），在本資料夾開啟 PowerShell：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\docker-start.ps1
+docker compose up -d
 ```
 
-不需額外安裝 Ubuntu、Python 或 Git。腳本會自動產生 `.env`、下載映像、初始化資料庫、建置 Portal、啟動服務並建立 SBOMScan 評估方案。首次啟動需要連網；後續重跑會保留設定與資料。
+不需額外安裝 Ubuntu、Python 或 Git。Compose 會自動建置符合 `.env` Account ID 的 Portal、啟動服務，並建立 SBOMScan 產品與評估方案。首次啟動需要連網；後續重跑會保留設定與資料。既有 `docker-start.ps1` 也可以使用，內部沿用相同的 Compose 流程。
+
+資料庫就緒後，`catalog` 會等待 HTTPS gateway、匯出 CA 到 `.runtime/root.crt`，並產生產品公開設定 `.runtime/product-public.env`。第一次可用下列指令確認整個流程已完成：
+
+```powershell
+docker compose logs -f setup catalog
+docker compose ps -a
+```
+
+`setup` 與 `catalog` 顯示 `Exited (0)` 代表一次性工作成功，其他服務應持續運行。若資料庫內已有其他 Account ID 或不完整資料表，初始化會停止並保留資料，不會自動重置；查看 `.runtime/bootstrap.log` 與服務日誌排查。
 
 啟動完成後開啟 **https://localhost:8443**。新環境預設登入帳號 **`admin`**、密碼 **`admin123`**；登入頁會將 `admin` 對應至 `.env` 的 `KEYGEN_ADMIN_EMAIL`（預設 `admin@example.com`），也可直接輸入該 Email。密碼保存在 `.env` 的 `KEYGEN_ADMIN_PASSWORD`。本機 CA 位於 `.runtime/root.crt`，瀏覽器需信任此憑證。
 
@@ -37,7 +46,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\docker-start.ps1
 
 Docker Desktop 會將服務顯示在同一個 `sbomscan-keygen-poc` Compose 專案內。PostgreSQL、Redis、Keygen、Portal 與 Caddy 各自使用容器；`down` 保留資料卷。不要使用 `docker compose down -v`，該命令會刪除資料卷。備份時需保存資料庫、`.env` 與 `.runtime`。
 
-完成第一次初始化後，也可用 `docker compose up -d` 啟動既有容器。此配置只提供本機存取；正式公開服務請見下方「集中服務與交付」。
+此配置只提供本機存取；正式公開服務請見下方「集中服務與交付」。
 
 ## 專案額度
 
