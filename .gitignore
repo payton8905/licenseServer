@@ -1,5 +1,6 @@
 .runtime/
-.env
+# The shared local deployment configuration is intentionally versioned.
+!/.env
 .env.*
 !.env.example
 __pycache__/

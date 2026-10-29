@@ -12,6 +12,10 @@ LicenseServer（供應商，集中部署一次）
 
 ## Windows Docker 一鍵啟動
 
+儲存庫已包含可直接讀取的 `.env` 本機部署設定，包括 Account ID、管理員登入設定、資料庫密碼及應用程式加密設定。重新 clone 後不需自行建立 `.env`；啟動腳本會保留現有內容，只有檔案不存在時才產生新設定。這份設定供本機集中授權服務使用，不隨 SBOMScan 客戶產品交付。
+
+首次啟動仍須執行下方腳本，以初始化 Keygen 資料庫與管理員帳號、建置符合 Account ID 的 Portal 並建立產品目錄。完成後可使用 `docker compose up -d` 啟動既有環境。
+
 先啟動 Docker Desktop（Linux containers），在本資料夾開啟 PowerShell：
 
 ```powershell
