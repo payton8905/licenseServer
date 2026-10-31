@@ -8,6 +8,27 @@ import { createRequire } from 'node:module'
 import ts from 'typescript'
 
 const dictionary = JSON.parse(fs.readFileSync(new URL('./zh-TW.json', import.meta.url), 'utf8'))
+const advancedModule = { exports: {} }
+let preference = null
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('./advanced-features.ts', import.meta.url), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, {
+  module: advancedModule, exports: advancedModule.exports,
+  localStorage: { getItem: () => preference, setItem: (_key, value) => { preference = value } },
+})
+const advanced = advancedModule.exports
+assert.equal(advanced.advancedFeaturesEnabled(), false)
+for (const page of ['groups', 'components', 'processes', 'packages', 'releases', 'artifacts', 'platforms', 'arches', 'channels', 'engines', 'webhook-endpoints', 'webhook-events', 'tokens', 'event-logs', 'request-logs', 'team', 'permissions', 'developers', 'billing', 'learn']) {
+  for (const suffix of ['', '/abc', '?page=1', '#details']) assert.equal(advanced.isAdvancedPath(`/account/app/${page}${suffix}`), true, page + suffix)
+}
+for (const page of ['products', 'entitlements', 'policies', 'licenses', 'machines', 'users', 'general', 'security', 'dashboard', 'groups-other']) {
+  assert.equal(advanced.isAdvancedPath(`/account/app/${page}`), false, page)
+}
+advanced.saveAdvancedFeatures(true)
+assert.equal(advanced.advancedFeaturesEnabled(), true)
+advanced.saveAdvancedFeatures(false)
+assert.equal(advanced.advancedFeaturesEnabled(), false)
+console.log('PASS: basic licensing and account security remain available; advanced routes, descendants, query strings and preference persistence.')
 for (const [english, chinese] of Object.entries(dictionary)) {
   assert.ok(chinese.length, `Empty translation: ${english}`)
   const tokens = value => [...value.matchAll(/\{\d+\}/g)].map(m => m[0]).sort()

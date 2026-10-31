@@ -1,7 +1,11 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { advancedFeaturesEnabled, saveAdvancedFeatures } from "@/lib/license-advanced"
 import * as keygen from "@/keygen"
+
+export function AdvancedFeaturesSection({ children }: { children: ReactNode }) {
+  return advancedFeaturesEnabled() ? children : null
+}
 
 export function AdvancedFeaturesToggle() {
   const [enabled] = useState(advancedFeaturesEnabled)
@@ -15,7 +19,7 @@ export function AdvancedFeaturesToggle() {
     <Button type="button" variant="outline" size="sm" aria-pressed={enabled} onClick={toggle}>
       {enabled ? "Disable advanced features" : "Enable advanced features"}
     </Button>
-    <p className="text-xs text-content-muted">Show component management and Webhooks. This preference is saved in this browser.</p>
+    <p className="text-xs text-content-muted">Show groups, components, processes, software distribution, Webhooks, API tokens and developer settings. This preference is saved in this browser.</p>
     {error && <p role="alert" className="text-sm">Unable to save this preference. Allow browser storage and try again.</p>}
   </div>
 }

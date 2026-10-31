@@ -10,5 +10,9 @@ export function saveAdvancedFeatures(enabled: boolean): void {
 }
 
 export function isAdvancedPath(path: string): boolean {
-  return /\/app\/(?:components|webhook-endpoints|webhook-events)(?:\/|$|\?)/.test(path)
+  return /\/app\/(?:groups|components|processes|packages|releases|artifacts|platforms|arches|channels|engines|webhook-endpoints|webhook-events|tokens|event-logs|request-logs|team|permissions|developers|billing|learn)(?:\/|$|\?|#)/.test(path)
+}
+
+export function isAdvancedResource(resource: string): boolean {
+  return isAdvancedPath(`/app/${resource}`)
 }

@@ -1,5 +1,6 @@
 """Initialize the product catalog after the gateway is ready; preserve edits."""
 from pathlib import Path
+import os
 import ssl
 import time
 
@@ -7,6 +8,9 @@ from poc import RUNTIME, local_open
 
 
 def main():
+    if os.environ.get('LICENSE_BOOTSTRAP_CATALOG', 'true').strip().lower() == 'false':
+        print('Automatic product catalog creation is disabled; create products and policies in the portal.', flush=True)
+        return
     RUNTIME.mkdir(exist_ok=True)
     ca = Path('/caddy-data/caddy/pki/authorities/local/root.crt')
     deadline = time.monotonic() + 180

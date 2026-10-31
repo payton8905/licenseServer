@@ -2152,5 +2152,6 @@
   "Enable advanced features in Settings to view component management.": "請至設定啟用進階功能，即可查看元件管理。",
   "Open settings": "開啟設定",
   "Show component management and Webhooks. This preference is saved in this browser.": "顯示元件管理與 Webhook 功能。此設定儲存在目前瀏覽器。",
-  "Enable advanced features in Settings to view this page.": "請至設定啟用進階功能，即可查看此頁面。"
+  "Enable advanced features in Settings to view this page.": "請至設定啟用進階功能，即可查看此頁面。",
+  "Show groups, components, processes, software distribution, Webhooks, API tokens and developer settings. This preference is saved in this browser.": "顯示群組、元件、程序、軟體發布、Webhook、API Token 與開發者設定。此設定儲存在目前瀏覽器。"
 }

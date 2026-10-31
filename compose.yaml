@@ -126,6 +126,7 @@ services:
     environment:
       PYTHONDONTWRITEBYTECODE: "1"
       LICENSE_PUBLIC_URL: ${LICENSE_PUBLIC_URL:-https://localhost:8443}
+      LICENSE_BOOTSTRAP_CATALOG: ${LICENSE_BOOTSTRAP_CATALOG:-true}
     volumes:
       - ./bootstrap-catalog.py:/workspace/bootstrap-catalog.py:ro
       - ./poc.py:/workspace/poc.py:ro
